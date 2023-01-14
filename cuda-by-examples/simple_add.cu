@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <cuda_runtime.h>
+#include <iostream>
+
+using namespace std;
 
 __global__ void add(int a, int b, int *c) {
     *c = a + b;
@@ -12,7 +15,13 @@ int main(void) {
     
     int c;
     int *dev_c;
+    cout << "Pointer value (before allocating memory on GPU): " << dev_c << endl;
+    cout << "Pointer address: " <<  &dev_c << endl;
+
     err = cudaMalloc( (void**) &dev_c, sizeof(int) );
+
+    cout << "Pointer value (after allocating memory on GPU): " << dev_c << endl;
+    cout << "Pointer address: " << &dev_c << endl;
     
     if (err != cudaSuccess) {
         printf("Memorry alloc error!");
