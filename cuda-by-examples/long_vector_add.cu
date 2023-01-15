@@ -2,7 +2,7 @@
 #include <cuda_runtime.h>
 
 #define N (33 * 1024)
-#define N_THREADS 64
+#define threadsPerBlock 64
 
 void handleError(cudaError_t err) {
     if (err != cudaSuccess) {
@@ -28,14 +28,20 @@ __global__ void gpu_vector_add(int *a, int *b, int *c) {
 }
 
 int main(void) {
-    int a[N], b[N], c[N], c_gpu[N];
+    int *a, *b, *c, *c_gpu;
     int *dev_a, *dev_b, *dev_c;
 
     // define threads
-    dim3 threads(N_THREADS);
-    dim3 blocks((N+N_THREADS-1)/N_THREADS);
+    dim3 threads(threadsPerBlock);
+    dim3 blocks((N+threadsPerBlock-1)/threadsPerBlock);
 
-    // allocate memory
+    // allocate memory to cpu
+    a = (int *)malloc(N * sizeof(int));
+    b = (int *)malloc(N * sizeof(int));
+    c = (int *)malloc(N * sizeof(int));
+    c_gpu = (int *)malloc(N * sizeof(int));
+
+    // allocate memory to gpu
     handleError(cudaMalloc( (void**)&dev_a, N * sizeof(int) ));
     handleError(cudaMalloc( (void**)&dev_b, N * sizeof(int) ));
     handleError(cudaMalloc( (void**)&dev_c, N * sizeof(int) ));
@@ -67,6 +73,17 @@ int main(void) {
     for (int i=N-10; i<N; i++) {
         printf("%d + %d = %d\n", a[i], b[i], c_gpu[i]);
     }
+
+    // free GPU mem
+    cudaFree(dev_a);
+    cudaFree(dev_b);
+    cudaFree(dev_c);
+    
+    // free CPU mem
+    free(a);
+    free(b);
+    free(c);
+    free(c_gpu);
 
     return 0;
 }
